@@ -1,6 +1,6 @@
 {
  "name":"@hunted/client", "version":"1.0.0", "private":true, "type":"module",
  "scripts":{"dev":"vite", "build":"tsc -b && vite build"},
- "dependencies":{"colyseus.js":"^0.15.28", "@hunted/shared":"workspace:*", "three":"^0.172.0"},
+ "dependencies":{"colyseus.js":"^0.15.28", "@hunted/shared":"file:../shared", "three":"^0.172.0"},
  "devDependencies":{"@types/three":"^0.172.0", "typescript":"^5.7.3", "vite":"^6.0.7"}
 }
