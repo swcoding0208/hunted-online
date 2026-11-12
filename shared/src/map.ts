@@ -15,9 +15,9 @@ export const WARDROBES:Rect[]=[[16,19,50,45],[449,19,50,42],[139,101,48,44],[538
 export const DRAWERS:Rect[]=[[176,46,30,52],[109,85,30,52],[38,127,30,52],[348,50,30,52],[284,102,32,52],[540,19,50,30],[600,106,54,32],[752,110,30,52],[874,21,34,50],[915,19,32,52],[191,158,32,52],[464,157,32,52],[314,195,32,52],[537,197,52,32],[603,176,32,52],[915,167,32,50],[234,314,32,52],[220,370,32,52],[454,274,32,52],[423,370,32,52],[500,388,32,52],[608,380,32,52],[733,411,32,52],[768,295,32,52],[917,296,32,50],[106,422,32,52],[264,483,32,50],[420,483,32,50],[137,533,32,50],[572,530,32,52],[648,527,32,50],[810,529,32,52]].map(rectPx);
 export const BOARDS=[[82,22,182,22],[320,108,420,108],[848,155,948,155],[790,236,888,236],[353,573,453,573],[194,238,194,335]].map(([x1,y1,x2,y2])=>({x:m((x1+x2)/2,OX),z:m((y1+y2)/2,OY),len:Math.hypot(x2-x1,y2-y1)/S,horiz:Math.abs(x2-x1)>=Math.abs(y2-y1)}));
 export const START:Pt={x:m(45,OX),z:m(556,OY)}, SAFE_ZONE=rectPx([14,417,55,163]), EXIT=rectPx([836,472,112,112]);
-// 시작 지점은 맵 안쪽(도면의 위쪽/북쪽)을 정면으로 바라본다.
-// Three.js 카메라의 정면은 yaw 0일 때 -Z 방향이다.
-export const START_YAW = 0;
+// 캐릭터 모델의 가스마스크 정면(+Z)과 1인칭 카메라 정면을 일치시킨다.
+// Three.js 카메라는 yaw π일 때 +Z 방향을 본다.
+export const START_YAW = Math.PI;
 export const inside=(x:number,z:number,b:Rect,pad=0)=>Math.abs(x-b.x)<=b.w/2+pad&&Math.abs(z-b.z)<=b.d/2+pad;
 function hit(px:number,pz:number,r:number,b:Rect){const dx=Math.max(Math.abs(px-b.x)-b.w/2,0),dz=Math.max(Math.abs(pz-b.z)-b.d/2,0);return dx*dx+dz*dz<r*r}
 const SOLIDS=[...WALLS,...WARDROBES,...DRAWERS];
