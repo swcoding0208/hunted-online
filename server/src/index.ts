@@ -1,0 +1,10 @@
+import http from 'node:http'; import path from 'node:path'; import { fileURLToPath } from 'node:url';
+import express from 'express'; import cors from 'cors'; import colyseus from 'colyseus'; import { HuntedRoom } from './HuntedRoom.js';
+const { Server, matchMaker } = colyseus;
+const app=express();app.use(cors({origin:process.env.CLIENT_ORIGIN?.split(',')||true}));app.use(express.json());
+const gameServer=new Server({server:http.createServer(app)});gameServer.define('hunted',HuntedRoom);
+app.get('/health',(_q,res)=>res.json({ok:true}));
+app.get('/api/rooms',async(_q,res)=>{const rooms=await matchMaker.query({name:'hunted'});res.json(rooms.filter((r:any)=>!r.metadata?.private&&r.metadata?.status==='lobby').map((r:any)=>({roomId:r.roomId,clients:r.clients,maxClients:r.maxClients,status:r.metadata?.status})));});
+app.get('/api/room/:code',async(q,res)=>{const code=String(q.params.code).toUpperCase();const rooms=await matchMaker.query({name:'hunted'});const r=rooms.find((x:any)=>x.metadata?.private&&x.metadata?.code===code&&x.metadata?.status==='lobby');if(!r)return res.status(404).json({error:'방을 찾을 수 없습니다.'});res.json({roomId:r.roomId});});
+const here=path.dirname(fileURLToPath(import.meta.url));const clientDist=path.resolve(here,'../../client/dist');app.use(express.static(clientDist));app.get('*',(_q,res)=>res.sendFile(path.join(clientDist,'index.html')));
+const port=Number(process.env.PORT||2567);gameServer.listen(port);console.log(`HUNTED server :${port}`);
