@@ -1,6 +1,6 @@
 import colyseus, { Client } from 'colyseus';
 import { GameState, Player, Monster, Doll } from './schema.js';
-import { START, DRAWERS, WARDROBES, EXIT, MAP_W, MAP_H, inside, lineBlocked, moveWithCollision, collides } from '@hunted/shared';
+import { START, START_YAW, DRAWERS, WARDROBES, EXIT, MAP_W, MAP_H, inside, lineBlocked, moveWithCollision, collides } from '@hunted/shared';
 
 const { Room } = colyseus;
 
@@ -24,7 +24,7 @@ export class HuntedRoom extends Room<GameState> {
   this.onMessage('signal',(c,m)=>this.broadcast('signal',{from:c.sessionId,...m},{except:c}));
  }
  onAuth(_c:Client,opts:{code?:string}) { if(this.metadata?.private && String(opts.code||'').toUpperCase()!==this.metadata.code) throw new Error('방 코드가 올바르지 않습니다.'); return true }
- onJoin(client:Client,opts:{name?:string}) { if(this.state.phase!=='lobby') throw new Error('이미 시작된 게임입니다.'); const p=new Player();p.name=String(opts.name||'Survivor').slice(0,16);p.x=START.x;p.z=START.z;p.color=palette[this.clients.length%palette.length];this.state.players.set(client.sessionId,p);if(!this.state.hostId)this.state.hostId=client.sessionId; }
+ onJoin(client:Client,opts:{name?:string}) { if(this.state.phase!=='lobby') throw new Error('이미 시작된 게임입니다.'); const p=new Player();p.name=String(opts.name||'Survivor').slice(0,16);p.x=START.x;p.z=START.z;p.yaw=START_YAW;p.color=palette[this.clients.length%palette.length];this.state.players.set(client.sessionId,p);if(!this.state.hostId)this.state.hostId=client.sessionId; }
  onLeave(client:Client) { this.inputs.delete(client.sessionId);this.investigate.delete(client.sessionId);this.dollLook.delete(client.sessionId);this.state.players.delete(client.sessionId); if(client.sessionId===this.state.hostId){this.state.hostId=this.state.players.keys().next().value||'';this.broadcast('host',this.state.hostId)} this.checkEnd(); }
  private startGame(){this.state.phase='playing';this.state.startedAt=Date.now();this.setMetadata({...this.metadata,status:'playing'}); const keyIndexes=[...DRAWERS.keys()].sort(()=>Math.random()-.5).slice(0,4);keyIndexes.forEach(i=>this.state.keyDrawers.set(String(i),true)); const spider=new Monster();spider.kind='spider';spider.x=MAP_W-2;spider.z=2;this.state.monsters.set('spider',spider);this.nextBlackout=Date.now()+30000+Math.random()*20000;this.lastDoll=Date.now();this.broadcast('started');}
  private tick(dt:number){if(this.state.phase!=='playing')return;const now=Date.now();this.movePlayers(dt/1000);this.completeSearches(now);this.updateSpider(dt/1000);this.updateBlackout(now);if(now-this.lastDoll>=60000){this.spawnDoll();this.lastDoll=now}this.checkSpiderKills();this.checkEnd();}

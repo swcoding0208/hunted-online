@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { Client, Room } from 'colyseus.js';
-import { WALLS, WARDROBES, DRAWERS, BOARDS, EXIT, MAP_W, MAP_H, WALL_H, inside } from '@hunted/shared';
+import { WALLS, WARDROBES, DRAWERS, BOARDS, EXIT, MAP_W, MAP_H, WALL_H, START_YAW, inside } from '@hunted/shared';
 import './style.css';
 
 const app=document.querySelector<HTMLDivElement>('#app')!;
@@ -39,7 +39,7 @@ class Voice {
 }
 
 class Game {
- scene=new THREE.Scene();camera=new THREE.PerspectiveCamera(75,innerWidth/innerHeight,.05,80);renderer=new THREE.WebGLRenderer({antialias:true});clock=new THREE.Clock();keys=new Set<string>();yaw=0;pitch=0;locked=false;flash=true;settings=false;effect=1;remote=new Map<string,THREE.Group>();dollMeshes:THREE.Mesh[]=[];spider!:THREE.Group;light!:THREE.SpotLight;ambient!:THREE.HemisphereLight;lastInput=0;lastGaze=0;noticeEl!:HTMLElement;red!:HTMLElement;dark!:HTMLElement;stamina!:HTMLElement;interactEl!:HTMLElement;mic!:HTMLButtonElement;voice:Voice;audio?:AudioContext;dead=false;
+ scene=new THREE.Scene();camera=new THREE.PerspectiveCamera(75,innerWidth/innerHeight,.05,80);renderer=new THREE.WebGLRenderer({antialias:true});clock=new THREE.Clock();keys=new Set<string>();yaw=START_YAW;pitch=0;locked=false;flash=true;settings=false;effect=1;remote=new Map<string,THREE.Group>();dollMeshes:THREE.Mesh[]=[];spider!:THREE.Group;light!:THREE.SpotLight;ambient!:THREE.HemisphereLight;lastInput=0;lastGaze=0;noticeEl!:HTMLElement;red!:HTMLElement;dark!:HTMLElement;stamina!:HTMLElement;interactEl!:HTMLElement;mic!:HTMLButtonElement;voice:Voice;audio?:AudioContext;dead=false;
  ghost=false;
  constructor(){this.voice=new Voice(this);this.mount();this.makeWorld();this.bind();this.loop();setTimeout(()=>this.voice.connect(),1000)}
  mount(){app.innerHTML=`<main class="game"><div class="hud"><div class="top"><div class="key">KEY <span id="key">0</span>/4</div><div class="small">F: 손전등 · E: 상호작용 · ESC: 설정</div></div><div class="stamina"><div class="small">STAMINA</div><div class="bar"><div id="stamina" class="fill"></div></div></div><div id="interact" class="interact hidden"></div><div class="notice" id="notice"></div><div class="cross"></div><div id="red" class="red"></div><div id="dark" class="blackout"></div><button id="mic" class="mic">🎙 마이크 끔</button><div id="settings" class="settings hidden"><b>설정</b><label>위협 효과 강도 <input id="effect" type="range" min="0" max="1.5" step=".1" value="1"></label><p class="hint">ESC를 다시 누르면 게임으로 돌아갑니다.</p></div></div></main>`;this.renderer.setSize(innerWidth,innerHeight);this.renderer.setPixelRatio(Math.min(devicePixelRatio,2));app.querySelector('.game')!.prepend(this.renderer.domElement);this.noticeEl=document.querySelector('#notice')!;this.red=document.querySelector('#red')!;this.dark=document.querySelector('#dark')!;this.stamina=document.querySelector('#stamina')!;this.interactEl=document.querySelector('#interact')!;this.mic=document.querySelector('#mic')!;this.mic.onclick=()=>this.voice.toggle();document.querySelector<HTMLInputElement>('#effect')!.oninput=e=>this.effect=+(e.target as HTMLInputElement).value;}
